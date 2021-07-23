@@ -6,18 +6,22 @@
 <header></header>
 <main class="container">
     <div class="card head-card">
-
+        <div class="card-image">
+            <img src="../static/img/big-bar.png" th:src="@{/img/big-bar.png}" alt="colorful bar" />
+        </div>
         <div class="card-content">
-            <h4 class="card-title">Viewing All Posts</h4>
-            <p>Click any post to view all of its content.</p>
+            <h4 class="card-title">Viewing All Ads</h4>
+            <p>Click any ad to view all of its content.</p>
         </div>
     </div>
-    <div th:each="post : ${posts}">
+    <div th:each="ad : ${ads}">
         <div class="card offwhite-body">
-
+            <div class="card-image">
+                <img src="../static/img/big-bar.png" th:src="@{/img/big-bar.png}" alt="colorful bar" />
+            </div>
             <div class="card-content preview-post">
-                <h4 class="card-title" th:text="${post.title}" />
-                <p th:text="${post.body}" />
+                <h4 class="card-title" th:text="${ad.title}" />
+                <p th:text="${ad.description}" />
             </div>
             <div class="small-space" />
         </div>
