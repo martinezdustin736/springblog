@@ -1,31 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="partials/navbar.html :: navbar" />
-<body class="main">
+<html lang="en" xmlns:th="http://www.thymeleaf.org/%22%3E">
+<head>
+    <meta charset="UTF-8"/>
+<title>Post index</title>
+</head>
+<body>
+<h1>Here are all the posts</h1>
 
-<header></header>
-<main class="container">
-    <div class="card head-card">
-        <div class="card-image">
-            <img src="../static/img/big-bar.png" th:src="@{/img/big-bar.png}" alt="colorful bar" />
-        </div>
-        <div class="card-content">
-            <h4 class="card-title">Viewing All Ads</h4>
-            <p>Click any ad to view all of its content.</p>
-        </div>
-    </div>
-    <div th:each="ad : ${ads}">
-        <div class="card offwhite-body">
-            <div class="card-image">
-                <img src="../static/img/big-bar.png" th:src="@{/img/big-bar.png}" alt="colorful bar" />
-            </div>
-            <div class="card-content preview-post">
-                <h4 class="card-title" th:text="${ad.title}" />
-                <p th:text="${ad.description}" />
-            </div>
-            <div class="small-space" />
-        </div>
-    </div>
-</main>
+<h1>Blog</h1>
+<div th:each="post : ${posts}">
+    <p th:text="${post.title}" />
+    <p th:text="${post.body}" />
+</div>
 </body>
 </html>

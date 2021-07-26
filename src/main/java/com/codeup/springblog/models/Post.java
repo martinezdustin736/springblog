@@ -45,4 +45,7 @@ public class Post {
         this.body = body;
     }
 
+    public long getById() {
+        return id;
+    }
 }

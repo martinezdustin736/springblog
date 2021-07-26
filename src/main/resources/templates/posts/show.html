@@ -1,20 +1,13 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org/%22%3E">
+<head>
+    <meta charset="UTF-8"/>
+<title>Show post</title>
+</head>
+<body>
 
-<body class="main">
-
-<header></header>
-<main class="container">
-    <div class="card offwhite-body">
-        <div class="card-image">
-            <img src="../static/img/big-bar.png" th:src="@{/img/big-bar.png}" alt="colorful bar" />
-        </div>
-        <div class="card-content">
-            <h3 class="card-title" th:text="${post.title}" />
-            <p th:text="${post.body}" class="i-like-paragraphs" />
-            <br />
-        </div>
-    </div>
-</main>
+<h1>Here is the single post</h1>
+<p><span th:text="${post.title}"></span></p>
+<p><span th:text="${post.body}"></span></p>
 </body>
 </html>
