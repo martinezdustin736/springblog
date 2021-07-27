@@ -2,6 +2,8 @@ package com.codeup.springblog.controllers;
 
 import com.codeup.springblog.models.Post;
 import com.codeup.springblog.models.PostRepository;
+import com.codeup.springblog.models.User;
+import com.codeup.springblog.models.UserRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -44,9 +46,11 @@ public class PostController {
 //    }
 
     private final PostRepository postRepo;
+    private final UserRepository userDao;
 
-    public PostController(PostRepository postRepo){
+    public PostController(PostRepository postRepo, UserRepository userDao) {
         this.postRepo = postRepo;
+        this.userDao = userDao;
     }
 
     @GetMapping("/posts")
@@ -56,24 +60,44 @@ public class PostController {
     }
 
     @GetMapping("/posts/{n}")
-    public String findById(@PathVariable long n, Model model){
+    public String findById(@PathVariable long n, Model model) {
         model.addAttribute("post", postRepo.findById(n));
         return "posts/show";
     }
 
-    @PostMapping("/posts/save/edit/{id}")
-    public String editOne(Model model,@PathVariable long id, @RequestParam(name = "title") String title, @RequestParam(name = "body") String body){
-        Post post = postRepo.getById(id);
-        post.setTitle(title);
-        post.setBody(body);
-        postRepo.save(post);
-        return "redirect:/posts/" + post.getById();
-    }
-
     @PostMapping("/posts/delete/{id}")
-    public String deletePost(@PathVariable long id, Model model) {
-        postRepo.delete(postRepo.deletePostById(id));
+    public String deleteById(@PathVariable long id) {
+        postRepo.deleteById(id);
+//        Instructor:
+//        postRepo.delete(id);
         return "redirect:/posts";
     }
 
+    @GetMapping("/posts/edit/{id}")
+    public String postToEdit(@PathVariable long id, Model model) {
+        model.addAttribute("post", postRepo.findById(id));
+        return "posts/edit";
+    }
+
+    @PostMapping("/posts/edit/update/{id}")
+    public String editPost(@PathVariable long id, @RequestParam String title, @RequestParam String body) {
+        Post updatedPost = postRepo.getById(id);
+        updatedPost.setTitle(title);
+        updatedPost.setBody(body);
+        postRepo.save(updatedPost);
+        return "redirect:/posts";
+    }
+
+    @GetMapping("/posts/create")
+    public String showCreateForm() {
+        return "posts/create";
+    }
+
+    @PostMapping("/posts/create")
+    public String createPost(@RequestParam String title, @RequestParam String body) {
+        User user1 = userDao.getById(1L);
+        Post post = new Post(title, body, user1);
+        postRepo.save(post);
+        return "redirect:/posts";
+    }
 }
