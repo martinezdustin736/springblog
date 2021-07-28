@@ -1,17 +1,20 @@
 package com.codeup.springblog.controllers;
 
 import com.codeup.springblog.models.*;
+import com.codeup.springblog.services.EmailService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Controller
 
 public class PostController {
     List<Post> posts = new ArrayList<>();
+
 //
 //
 //    @GetMapping("/posts")
@@ -42,46 +45,48 @@ public class PostController {
 //       return "create a new post";
 //    }
 
-    private final PostRepository postRepo;
+    private final PostRepository postDao;
     private final UserRepository userDao;
+    private final EmailService emailSvc;
 
-    public PostController(PostRepository postRepo, UserRepository userDao) {
-        this.postRepo = postRepo;
+    public PostController(PostRepository postRepo, UserRepository userDao, EmailService emailSvc) {
+        this.postDao = postRepo;
         this.userDao = userDao;
+        this.emailSvc = emailSvc;
     }
 
     @GetMapping("/posts")
     public String index(Model model) {
-        model.addAttribute("posts", postRepo.findAll());
+        model.addAttribute("posts", postDao.findAll());
         return "posts/index";
     }
 
     @GetMapping("/posts/{n}")
     public String findById(@PathVariable long n, Model model) {
-        model.addAttribute("post", postRepo.findById(n));
+        model.addAttribute("post", postDao.findById(n));
         return "posts/show";
     }
 
     @PostMapping("/posts/delete/{id}")
     public String deleteById(@PathVariable long id) {
-        postRepo.deleteById(id);
+        postDao.deleteById(id);
 //        Instructor:
 //        postRepo.delete(id);
         return "redirect:/posts";
     }
 
-    @GetMapping("/posts/edit/{id}")
+    @GetMapping("/posts/{id}/edit")
     public String postToEdit(@PathVariable long id, Model model) {
-        model.addAttribute("post", postRepo.findById(id));
+        model.addAttribute("post", postDao.findById(id));
         return "posts/edit";
     }
 
     @PostMapping("/posts/edit/update/{id}")
     public String editPost(@PathVariable long id, @RequestParam String title, @RequestParam String body) {
-        Post updatedPost = postRepo.getById(id);
+        Post updatedPost = postDao.getById(id);
         updatedPost.setTitle(title);
         updatedPost.setBody(body);
-        postRepo.save(updatedPost);
+        postDao.save(updatedPost);
         return "redirect:/posts";
     }
 
@@ -98,11 +103,12 @@ public class PostController {
 //        postRepo.save(post);
 //        return "redirect:/posts";
 //    }
-    @PostMapping("/posts/create")
-    public String createAd(@ModelAttribute Post post) {
-        post.setUser(userDao.getById(1L));
-        postRepo.save(post);
-        return "redirect:/posts";
-    }
+@PostMapping("/posts/create")
+public String createPost(@ModelAttribute Post post) {
+    post.setUser(userDao.getById(1L));
+    emailSvc.prepareAndSend(userDao.getById(1L).getEmail(), "New post", "Thank you for creating a new post!");
+    postDao.save(post);
+    return "redirect:/posts";
+}
 
 }
