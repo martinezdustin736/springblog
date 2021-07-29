@@ -62,5 +62,11 @@ public class MathController {
         return String.valueOf(x / y);
     }
 
+//    @GetMapping("/posts1")
+//    @ResponseBody
+//    public String posts(){
+//       return "practice posts index page";
+//    }
+
 
 }
