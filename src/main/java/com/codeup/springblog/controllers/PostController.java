@@ -1,92 +1,68 @@
 package com.codeup.springblog.controllers;
-
-import com.codeup.springblog.models.*;
-import com.codeup.springblog.services.EmailService;
+import com.codeup.springblog.models.Post;
+import com.codeup.springblog.models.User;
+import com.codeup.springblog.repositories.PostRepository;
+import com.codeup.springblog.repositories.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 @Controller
-
 public class PostController {
-    List<Post> posts = new ArrayList<>();
-
-//
-//
-//    @GetMapping("/posts")
-//    public String viewPosts(Model model) {
-//        posts.add(new Post("This is post1", "This is post1s body"));
-//        posts.add(new Post("This is post2", "This is post2s body"));
-//        model.addAttribute("posts", posts);
-//        return "posts/index";
-//    }
-//
-//    @GetMapping("/posts/{id}")
-//    public String singlePost(@PathVariable long id, Model model) {
-//        Post post = new Post("Jeff buys bicycle.", "No one know why. Must really like the feeling of the wind on his face.");
-//        model.addAttribute("post", post);
-//        return "posts/show";
-//    }
-//
-//    // When you visit the URL you will see the form to create a post.
-//    @GetMapping("/posts/create")
-//    @ResponseBody
-//    public String createForm() {
-//        return "View form to create a post.";
-//    }
-//
-//    @RequestMapping(path = "/posts/create", method = RequestMethod.POST)
-//    @ResponseBody
-//    public String createPost(){
-//       return "create a new post";
-//    }
-
     private final PostRepository postDao;
     private final UserRepository userDao;
-    private final EmailService emailSvc;
 
-    public PostController(PostRepository postRepo, UserRepository userDao, EmailService emailSvc) {
-        this.postDao = postRepo;
+    public PostController(PostRepository postDao, UserRepository userDao) {
+        this.postDao = postDao;
         this.userDao = userDao;
-        this.emailSvc = emailSvc;
     }
 
     @GetMapping("/posts")
-    public String index(Model model) {
+    public String viewPosts(Model model) {
         model.addAttribute("posts", postDao.findAll());
         return "posts/index";
     }
 
-    @GetMapping("/posts/{n}")
-    public String findById(@PathVariable long n, Model model) {
-        model.addAttribute("post", postDao.findById(n));
+    @GetMapping("/posts/{id}")
+    public String singlePost(@PathVariable long id, Model model) {
+        Post post = postDao.getById(id);
+        boolean isPostOwner = false;
+        if (SecurityContextHolder.getContext().getAuthentication().getPrincipal() != "anonymousUser") {
+            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            isPostOwner = currentUser.getId() == post.getUser().getId();
+        }
+        model.addAttribute("post", post);
+        model.addAttribute("isPostOwner", isPostOwner);
         return "posts/show";
     }
 
-    @PostMapping("/posts/delete/{id}")
-    public String deleteById(@PathVariable long id) {
-        postDao.deleteById(id);
-//        Instructor:
-//        postRepo.delete(id);
-        return "redirect:/posts";
-    }
-
     @GetMapping("/posts/{id}/edit")
-    public String postToEdit(@PathVariable long id, Model model) {
-        model.addAttribute("post", postDao.findById(id));
-        return "posts/edit";
+    public String editForm(@PathVariable long id, Model model) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Post post = postDao.getById(id);
+        if (currentUser.getId() == post.getUser().getId()) {
+            model.addAttribute("post", post);
+            return "posts/edit";
+        } else {
+            return "redirect:/posts/" + id;
+        }
     }
 
-    @PostMapping("/posts/edit/update/{id}")
-    public String editPost(@PathVariable long id, @RequestParam String title, @RequestParam String body) {
-        Post updatedPost = postDao.getById(id);
-        updatedPost.setTitle(title);
-        updatedPost.setBody(body);
-        postDao.save(updatedPost);
+    @PostMapping("/posts/{id}/edit")
+    public String editPost(@PathVariable long id, @ModelAttribute Post post) {
+        post.setUser(userDao.getById(1L));
+        postDao.save(post);
+        return "redirect:/posts/" + id;
+    }
+
+    @PostMapping("/posts/delete/{id}")
+    public String deletePost(@PathVariable long id) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Post post = postDao.getById(id);
+        if (currentUser.getId() == post.getUser().getId()) {
+            postDao.delete(post);
+        }
         return "redirect:/posts";
     }
 
@@ -96,19 +72,14 @@ public class PostController {
         return "posts/create";
     }
 
-//    @PostMapping("/posts/create")
-//    public String createPost(@RequestParam String title, @RequestParam String body) {
-//        User user1 = userDao.getById(1L);
-//        Post post = new Post(title, body, user1);
-//        postRepo.save(post);
-//        return "redirect:/posts";
-//    }
-@PostMapping("/posts/create")
-public String createPost(@ModelAttribute Post post) {
-    post.setUser(userDao.getById(1L));
-    emailSvc.prepareAndSend(userDao.getById(1L).getEmail(), "New post", "Thank you for creating a new post!");
-    postDao.save(post);
-    return "redirect:/posts";
-}
+    @PostMapping("/posts/create")
+    public String createPost(@ModelAttribute Post post) {
+        User user = userDao.getById(1L);
+        post.setUser(user);
+        postDao.save(post);
+//        emailService.prepareAndSend(post, "You created: " + post.getTitle(), post.getBody());
+        return "redirect:/posts";
+    }
+
 
 }
