@@ -51,7 +51,8 @@ public class PostController {
 
     @PostMapping("/posts/{id}/edit")
     public String editPost(@PathVariable long id, @ModelAttribute Post post) {
-        post.setUser(userDao.getById(1L));
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        post.setUser(user);
         postDao.save(post);
         return "redirect:/posts/" + id;
     }
@@ -74,7 +75,7 @@ public class PostController {
 
     @PostMapping("/posts/create")
     public String createPost(@ModelAttribute Post post) {
-        User user = userDao.getById(1L);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         post.setUser(user);
         postDao.save(post);
 //        emailService.prepareAndSend(post, "You created: " + post.getTitle(), post.getBody());
